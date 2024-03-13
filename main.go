@@ -19,7 +19,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer tempFile1.Close()
+	defer tempFile1.Close() // Garante que o arquivo vai ser fechado ao terminar o programa
 
 	tempFile2, err := ioutil.TempFile("", "download2")
 	if err != nil {
@@ -28,12 +28,14 @@ func main() {
 	defer tempFile2.Close()
 
 	// Cria um progresso principal
-	p := mpb.New(mpb.WithWaitGroup(&sync.WaitGroup{}))
+	p := mpb.New(mpb.WithWaitGroup(&sync.WaitGroup{})) // Cria uma nova instância de progresso usando a biblioteca mpb. A opção WithWaitGroup é usada para sincronizar o progresso com um WaitGroup.
 
 	// Cria duas barras de progresso
 	bar1 := p.AddBar(limit, mpb.PrependDecorators(
 		decor.Name("Download 1"),
 		decor.CountersNoUnit("%d / %d", decor.WCSyncSpace),
+	), mpb.AppendDecorators(
+		decor.OnComplete(decor.Name("          "), " Completed"),
 	))
 
 	bar2 := p.AddBar(limit, mpb.PrependDecorators(
@@ -41,8 +43,8 @@ func main() {
 		decor.CountersNoUnit("%d / %d", decor.WCSyncSpace),
 	))
 
-	var wg sync.WaitGroup
-	wg.Add(2) // Adiciona 2 tarefas ao WaitGroup
+	var wg sync.WaitGroup // Sincroniza as goroutines
+	wg.Add(2)             // Adiciona 2 tarefas ao WaitGroup
 
 	// Inicia os downloads em paralelo usando goroutines
 	go func() {
@@ -51,7 +53,7 @@ func main() {
 			if _, err := io.CopyN(tempFile1, rand.Reader, 1024); err != nil {
 				panic(err)
 			}
-			bar1.IncrBy(1024)                 // Atualiza a primeira barra de progresso
+			bar1.IncrBy(10240)                // Atualiza a primeira barra de progresso
 			time.Sleep(time.Millisecond * 50) // Simula um atraso para visualizar o progresso
 		}
 	}()
