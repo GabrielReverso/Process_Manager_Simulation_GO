@@ -1,9 +1,7 @@
 package main
 
 import (
-	"crypto/rand"
-	"io"
-	"io/ioutil"
+	"fmt"
 	"sync"
 	"time"
 
@@ -12,131 +10,47 @@ import (
 )
 
 func main() {
-	var limit int64 = 300 // 1MB
-
-	// Cria dois arquivos temporários para simular dois downloads
-	tempFile1, err := ioutil.TempFile("", "process1")
-	if err != nil {
-		panic(err)
-	}
-	defer tempFile1.Close() // Garante que o arquivo vai ser fechado ao terminar o programa
-
-	tempFile2, err := ioutil.TempFile("", "process2")
-	if err != nil {
-		panic(err)
-	}
-	defer tempFile2.Close()
-
-	tempFile3, err := ioutil.TempFile("", "process3")
-	if err != nil {
-		panic(err)
-	}
-	defer tempFile3.Close()
+	limits := []int64{600, 200, 200, 400, 500}
 
 	// Cria um progresso principal
 	p := mpb.New(mpb.WithWaitGroup(&sync.WaitGroup{}))
 
-	// Cria duas barras de progresso
-	bar1 := p.AddBar(limit, mpb.PrependDecorators(
-		decor.Name("Process 1"),
-		decor.CountersNoUnit("%d / %d", decor.WCSyncSpace),
-	), mpb.AppendDecorators(
-		decor.Percentage(decor.WCSyncSpace),
-		decor.OnComplete(decor.Name("          "), " Completed"),
-	))
-
-	bar2 := p.AddBar(100, mpb.PrependDecorators(
-		decor.Name("Process 2"),
-		decor.CountersNoUnit("%d / %d", decor.WCSyncSpace),
-	),
-		mpb.AppendDecorators(
+	// Criar as barras de progresso dinamicamente
+	bars := make([]*mpb.Bar, len(limits))
+	for i, limit := range limits {
+		bars[i] = p.AddBar(limit, mpb.PrependDecorators(
+			decor.Name(fmt.Sprintf("Process %d", i+1)),
+			decor.CountersNoUnit("%d / %d", decor.WCSyncSpace),
+		), mpb.AppendDecorators(
 			decor.Percentage(decor.WCSyncSpace),
 			decor.OnComplete(decor.Name("          "), " Completed"),
+			decor.Elapsed(decor.ET_STYLE_MMSS, decor.WCSyncSpace),
 		))
+	}
 
-	bar3 := p.AddBar(200, mpb.PrependDecorators(
-		decor.Name("Process 3"),
-		decor.CountersNoUnit("%d / %d", decor.WCSyncSpace),
-	),
-		mpb.AppendDecorators(
-			decor.Percentage(decor.WCSyncSpace),
-			decor.OnComplete(decor.Name("          "), " Completed"),
-		))
-
-	var wg sync.WaitGroup // Sincroniza as goroutines
-	wg.Add(3)             // Adiciona 2 tarefas ao WaitGroup
-
-	NextRoutine := make(chan bool)
-	count := 3
-
-	// Inicia os processos em paralelo usando goroutines
-	go func(id int) {
-		defer wg.Done()
-		i := int64(0)
-		for i = 0; i < limit; i += 10 { // Aumenta o progresso
-			if count > 1 {
-				<-NextRoutine // Aguarda o sinal para continuar
-			}
-			for j := 0; j < 10; j++ {
-				if _, err := io.CopyN(tempFile1, rand.Reader, 10); err != nil {
-					panic(err)
+	// Atualiza as barras de progresso dinamicamente
+	// Continua até que todas as barras de progresso estejam concluídas.
+	for {
+		allCompleted := true
+		// Itera sobre cada barra de progresso no slice 'bars'.
+		for _, bar := range bars {
+			// Verifica se a barra de progresso atual não está concluída.
+			if !bar.Completed() {
+				// Se a barra de progresso não estiver concluída, define 'allCompleted' como false.
+				allCompleted = false
+				for quantum := 0; quantum < 10; quantum++ {
+					bar.IncrBy(1)
+					time.Sleep(time.Millisecond * 10)
 				}
-				bar1.IncrBy(1)                    // Atualiza a primeira barra de progresso
-				time.Sleep(time.Millisecond * 20) // Simula um atraso para visualizar o progresso
-			}
-			if count > 1 {
-				NextRoutine <- true // Sinaliza a próxima goroutine para executar
+				// Após incrementar a barra de progresso 10 vezes, aguarda 100 milissegundos.
+				time.Sleep(time.Millisecond * 100)
 			}
 		}
-		count--
-	}(1)
-
-	go func(id int) {
-		defer wg.Done()
-		i := int64(0)
-		for i = 0; i < 100; i += 10 { // Aumenta o progresso
-			if count > 1 {
-				<-NextRoutine // Aguarda o sinal para continuar
-			}
-			for j := 0; j < 10; j++ {
-				if _, err := io.CopyN(tempFile2, rand.Reader, 10); err != nil {
-					panic(err)
-				}
-				bar2.IncrBy(1)                    // Atualiza a segunda barra de progresso
-				time.Sleep(time.Millisecond * 20) // Simula um atraso para visualizar o progresso
-			}
-			if count > 1 {
-				NextRoutine <- true // Sinaliza a próxima goroutine para executar
-			}
+		// Se todas as barras de progresso estiverem concluídas sai do loop infinito.
+		if allCompleted {
+			break
 		}
-		count--
-	}(2)
-
-	go func(id int) {
-		defer wg.Done()
-		i := int64(0)
-		for i = 0; i < 200; i += 10 { // Aumenta o progresso
-			if count > 1 {
-				<-NextRoutine // Aguarda o sinal para continuar
-			}
-			for j := 0; j < 10; j++ {
-				if _, err := io.CopyN(tempFile3, rand.Reader, 10); err != nil {
-					panic(err)
-				}
-				bar3.IncrBy(1)                    // Atualiza a terceira barra de progresso
-				time.Sleep(time.Millisecond * 20) // Simula um atraso para visualizar o progresso
-			}
-			if count > 1 {
-				NextRoutine <- true // Sinaliza a próxima goroutine para executar
-			}
-		}
-		count--
-	}(3)
-
-	NextRoutine <- true // Inicia o ciclo de execução
-
-	// Aguarda todas as goroutines terminarem
-	wg.Wait()
+	}
 
 	// Finaliza o progresso principal
 	p.Wait()
