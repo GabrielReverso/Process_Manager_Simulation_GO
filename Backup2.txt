@@ -1,4 +1,4 @@
-package roundrobin
+package main
 
 import (
 	"fmt"
@@ -7,39 +7,24 @@ import (
 
 	"github.com/vbauerster/mpb/v7"
 	"github.com/vbauerster/mpb/v7/decor"
-
-	taskcreate "module/taskCreate"
 )
 
-func RoundRobin() {
-	const (
-		Reset = "\033[0m"
-		Red   = "\033[31m"
-		/* 		Green   = "\033[32m"
-		   		Yellow  = "\033[33m"
-		   		Blue    = "\033[34m"
-		   		Magenta = "\033[35m"
-		   		Cyan    = "\033[36m"
-		   		White   = "\033[37m" */
-	)
-
-	tasks := taskcreate.TaskVetorCreator(10)
-
-	fmt.Println(Red + "    ID   " + Reset + "|" + Red + "   PRIORITY   " + Reset + "|" + Red + "       QUANTUM       " + Reset + "|" + Red + "                                               PROGRESS                                         " + Reset)
+func main() {
+	limits := []int64{600, 200, 200, 400, 500}
 
 	// Cria um progresso principal
 	p := mpb.New(mpb.WithWaitGroup(&sync.WaitGroup{}))
 
 	// Criar as barras de progresso dinamicamente
-	bars := make([]*mpb.Bar, len(tasks))
-	for i, task := range tasks {
-		bars[i] = p.AddBar(int64(task.Quantum), mpb.PrependDecorators(
-			decor.Name(fmt.Sprintf("PID: %3.d | Priority: %2.d |", task.Id, task.Priority)),
-			decor.CountersNoUnit(" Quantum: %3.d / %3.d |", decor.WCSyncSpace),
+	bars := make([]*mpb.Bar, len(limits))
+	for i, limit := range limits {
+		bars[i] = p.AddBar(limit, mpb.PrependDecorators(
+			decor.Name(fmt.Sprintf("Process %d", i+1)),
+			decor.CountersNoUnit("%d / %d", decor.WCSyncSpace),
 		), mpb.AppendDecorators(
 			decor.Percentage(decor.WCSyncSpace),
-			decor.Elapsed(decor.ET_STYLE_MMSS, decor.WCSyncSpace),
 			decor.OnComplete(decor.Name("          "), " Completed"),
+			decor.Elapsed(decor.ET_STYLE_MMSS, decor.WCSyncSpace),
 		))
 	}
 
