@@ -11,7 +11,7 @@ import (
 	taskcreate "module/taskCreate"
 )
 
-func RoundRobin() {
+func RoundRobin(tasks []taskcreate.TaskStruct) {
 	const (
 		Reset = "\033[0m"
 		Red   = "\033[31m"
@@ -23,7 +23,7 @@ func RoundRobin() {
 		   		White   = "\033[37m" */
 	)
 
-	tasks := taskcreate.TaskVetorCreator(20)
+	//tasks := taskcreate.TaskVetorCreator(qtdTask)
 
 	fmt.Println(Red + "    ID   " + Reset + "|" + Red + "   PRIORITY   " + Reset + "|" + Red + "       QUANTUM       " + Reset + "|" + Red + "                                               PROGRESS                                         " + Reset)
 
@@ -41,6 +41,7 @@ func RoundRobin() {
 			decor.Elapsed(decor.ET_STYLE_MMSS, decor.WCSyncSpace),
 			decor.OnComplete(decor.Name("          "), " Completed"),
 		))
+		time.Sleep(time.Millisecond * 10)
 	}
 
 	// Atualiza as barras de progresso dinamicamente
