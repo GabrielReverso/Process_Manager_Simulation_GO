@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
 	roundrobin "module/roundRobin"
+	//"module/priorityList"
 )
 
 /* 	"fmt"
@@ -59,7 +60,7 @@ func main() {
 	   	p.Wait() */
 
 	//TO DO
-	numTask := 1
+	/*numTask := 1
 	fmt.Println("Digite o numero de processos (1 - 100): ")
 	fmt.Scanf("%d", numTask)
 
@@ -69,7 +70,9 @@ func main() {
 	}
 
 	fmt.Println("Digite o numero do algoritimo de teste: ")
-	fmt.Println("1 -> Round Robin")
-
+	//fmt.Println("1 -> Round Robin")
+	*/
 	roundrobin.RoundRobin()
+
+	//prioritylist.Prioritylist()
 }

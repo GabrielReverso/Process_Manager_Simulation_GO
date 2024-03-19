@@ -23,7 +23,7 @@ func RoundRobin() {
 		   		White   = "\033[37m" */
 	)
 
-	tasks := taskcreate.TaskVetorCreator(10)
+	tasks := taskcreate.TaskVetorCreator(20)
 
 	fmt.Println(Red + "    ID   " + Reset + "|" + Red + "   PRIORITY   " + Reset + "|" + Red + "       QUANTUM       " + Reset + "|" + Red + "                                               PROGRESS                                         " + Reset)
 

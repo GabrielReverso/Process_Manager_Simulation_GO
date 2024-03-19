@@ -6,7 +6,9 @@ import (
 	"time"
 )
 
-type taskStruct struct {
+const TamanhoPriority int = 11
+
+type TaskStruct struct {
 	Nome     string
 	Id       int
 	Priority int
@@ -14,10 +16,10 @@ type taskStruct struct {
 	//Status   string
 }
 
-func Taskcreate(numero int, Nquantum int, Npriority int) taskStruct {
+func Taskcreate(numero int, Nquantum int, Npriority int) TaskStruct {
 	stringNumero := strconv.Itoa(numero)
 
-	task := taskStruct{}
+	task := TaskStruct{}
 	task.Nome = "Process " + stringNumero
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -35,7 +37,7 @@ func Taskcreate(numero int, Nquantum int, Npriority int) taskStruct {
 		192, 100, 184, 137, 194, 54, 272, 271,
 	}
 
-	priorities := [11]int{
+	priorities := [TamanhoPriority]int{
 		7, 1, 10, 8, 3, 10, 5, 6, 2, 9, 4,
 	}
 
@@ -47,13 +49,15 @@ func Taskcreate(numero int, Nquantum int, Npriority int) taskStruct {
 
 }
 
-func TaskVetorCreator(QuantidadeDeTask int) []taskStruct {
+func TaskVetorCreator(QuantidadeDeTask int) []TaskStruct {
 
-	taskVetor := make([]taskStruct, QuantidadeDeTask)
+	taskVetor := make([]TaskStruct, QuantidadeDeTask)
 
 	for i := 0; i < QuantidadeDeTask; i++ {
 
-		newTask := Taskcreate(i+1, i, i)
+		PriorityIndex := i % TamanhoPriority
+
+		newTask := Taskcreate(i+1, i, PriorityIndex)
 
 		taskVetor[i] = newTask
 
