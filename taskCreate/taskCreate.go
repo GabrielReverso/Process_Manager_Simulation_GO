@@ -13,6 +13,7 @@ type TaskStruct struct {
 	Id       int
 	Priority int
 	Quantum  int
+	QuantumI int
 	//Status   string
 }
 
@@ -42,6 +43,7 @@ func Taskcreate(numero int, Nquantum int, Npriority int) TaskStruct {
 	}
 
 	task.Quantum = quantuns[Nquantum]
+	task.QuantumI = task.Quantum
 	task.Priority = priorities[Npriority]
 	//task.Status = "disponivel"
 

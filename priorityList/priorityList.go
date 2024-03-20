@@ -1,13 +1,15 @@
 package prioritylist
 
 import (
-	//"fmt"
 	taskcreate "module/taskCreate"
+	"sort"
 )
+
+var taskChanel = make(chan []taskcreate.TaskStruct)
 
 type Task []taskcreate.TaskStruct
 
-func (t Task) len() int {
+func (t Task) Len() int {
 	return len(t)
 }
 
@@ -19,27 +21,53 @@ func (t Task) Swap(i, j int) {
 	t[i], t[j] = t[j], t[i]
 }
 
-func Prioritylist() {
+func Prioritylist(tasks []taskcreate.TaskStruct) {
+
+	count := 0
+	tempo := 0
+
+	for {
+		allCompleted := true
+		for _, task := range tasks {
+			if task.QuantumI != 0 {
+				allCompleted = false
+			}
+
+			for quantuns := 0; quantuns < 10; quantuns++ {
+				if task.QuantumI == 0 {
+					break
+				}
+				task.QuantumI--
+				tempo++
+			}
+
+		}
+
+		count++
+
+		if count == 3 {
+			count = 0
+			go RoutineProcessVector(taskChanel, tasks)
+
+			tasks = <-taskChanel
+		}
+
+		if allCompleted {
+			break
+		}
+
+	}
 
 }
 
-func RoutineProcessVector() {
+func RoutineProcessVector(channel chan []taskcreate.TaskStruct, TaskI []taskcreate.TaskStruct) {
 
-	//Canal de comunicação
-	//Datachanel := make(chan []taskcreate.TaskStruct)
+	t := Task(TaskI)
 
-	go func() {
+	sort.Sort(t)
 
-		Tasks := taskcreate.TaskVetorCreator(20)
+	TaskI = []taskcreate.TaskStruct(t)
 
-		for {
-			TamanoVetor := len(Tasks)
-
-			for i := 0; i < TamanoVetor; i++ {
-
-			}
-		}
-
-	}()
+	channel <- TaskI
 
 }
