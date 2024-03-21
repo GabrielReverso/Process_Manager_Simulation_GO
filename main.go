@@ -36,6 +36,7 @@ func main() {
 	fmt.Println("3 -> Shortest First")
 	fmt.Println("4 -> Priority First")
 	fmt.Println("5 -> First In First Out")
+	fmt.Println("5 -> Priority List")
 	fmt.Println("")
 	fmt.Scanf("%d", &managerOption)
 
