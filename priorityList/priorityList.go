@@ -13,27 +13,17 @@ import (
 	"github.com/vbauerster/mpb/v7/decor"
 )
 
-
 type taskAux struct {
-	task taskcreate.TaskStruct
-	index int
+	task      taskcreate.TaskStruct
+	index     int
+	interacao int
 }
-
-var taskChanel = make(chan []taskAux)
-
 
 func Prioritylist(tasks []taskcreate.TaskStruct) {
 	const (
 		Reset = "\033[0m"
 		Red   = "\033[31m"
-		/* 		Green   = "\033[32m"
-		   		Yellow  = "\033[33m"
-		   		Blue    = "\033[34m"
-		   		Magenta = "\033[35m"
-		   		Cyan    = "\033[36m"
-		   		White   = "\033[37m" */
 	)
-
 
 	fmt.Println(Red + "    ID   " + Reset + "|" + Red + "   PRIORITY   " + Reset + "|" + Red + "       QUANTUM       " + Reset + "|" + Red + "                                               PROGRESS                                         " + Reset)
 
@@ -53,91 +43,69 @@ func Prioritylist(tasks []taskcreate.TaskStruct) {
 		))
 		time.Sleep(time.Millisecond * 10)
 	}
-
 	TasksComplete := make([]taskAux, len(tasks))
 
 	for i, t := range tasks {
 		TasksComplete[i].task = t
-		TasksComplete[i].index = i	
+		TasksComplete[i].index = i
+		TasksComplete[i].interacao = 0
 	}
-
-	count := 1
 
 	for {
-		allCompleted := true
-
-		for _, bar := range bars {
-			if bar.Completed(){
-				continue
-			}
-			if !bar.Completed(){
-				allCompleted = false
-			}
-		}
-
-		
+		allComplete := true
 
 		for _, t := range TasksComplete {
-			if t.task.Quantum == 0{
-				continue
+			if !bars[t.index].Completed() {
+				allComplete = false
+				for quantuns := 0; quantuns < 10+(100/t.task.Priority); quantuns++ {
+					if bars[t.index].Completed() {
+						break
+					}
+					t.task.QuantumI = t.task.QuantumI - 1
+					bars[t.index].IncrBy(1)
+					time.Sleep(time.Millisecond * 10)
+					t.interacao++
+				}
+				time.Sleep(time.Millisecond * 100)
 			}
-			for quantuns := 0; quantuns < 10 + int((10/t.task.Priority)); quantuns++ {
-				t.task.QuantumI--
-				bars[t.index].IncrBy(1)
-				time.Sleep(time.Millisecond * 10)				
-			}
-			time.Sleep(time.Millisecond * 100)
-			
 		}
 
-		count++
-
-		if count >= 3{
-			count = 1
-			go RoutineProcessVector (taskChanel, TasksComplete)
-
-			newTask := <- taskChanel
-
-			TasksComplete = newTask
-		}
-
-
-
-		if allCompleted {
+		if allComplete {
 			break
 		}
-	}
 
+		newTaskComplete := RoutineProcessVector(TasksComplete)
+
+		TasksComplete = newTaskComplete
+
+	}
 
 	p.Wait()
 }
 
-func RoutineProcessVector(channel chan []taskAux, TaskI []taskAux) {
+func RoutineProcessVector(TaskI []taskAux) []taskAux {
 
-	for _, t := range TaskI {
-		conta := float64(t.task.QuantumI) /  float64(t.task.Quantum)
-		if conta >= 0.95{
-			t.task.Priority = t.task.Priority * 8
-		}else if conta < 0.95 && conta	>= 0.80{
-			t.task.Priority = t.task.Priority * 6
-		}else if conta < 0.80 && conta	>= 0.50{
-			t.task.Priority = t.task.Priority * 4
+	newTaskI := TaskI
+
+	for _, t := range newTaskI {
+
+		multiply := len(newTaskI)
+
+		if t.interacao >= 40*multiply {
+			t.task.Priority = (t.task.Priority / 20) * 20
+		} else if t.interacao < 40*multiply && t.interacao >= 30*multiply {
+			t.task.Priority = (t.task.Priority / 10) * 10
+		} else if t.interacao < 30*multiply && t.interacao > 20*multiply {
+			t.task.Priority = (t.task.Priority / 5) * 10
+		} else if t.interacao < 20*multiply && t.interacao > 10*multiply {
+			t.task.Priority = (t.task.Priority / 2) * 10
 		}
 
-		
-
-		t.task.Quantum = t.task.QuantumI
 	}
 
-	sort.Slice(TaskI, func(i, j int) bool {
-		return TaskI[i].task.Priority > TaskI[j].task.Priority
+	sort.Slice(newTaskI, func(i, j int) bool {
+		return newTaskI[i].task.Priority > newTaskI[j].task.Priority
 	})
 
-	fmt.Println("HI")
-
-	
-	channel <- TaskI
+	return newTaskI
 }
-
-
-

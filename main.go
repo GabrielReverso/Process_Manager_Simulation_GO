@@ -9,6 +9,7 @@ import (
 	"module/roundRobinPriority"
 	"module/shortestFirst"
 	taskcreate "module/taskCreate"
+	"time"
 )
 
 func main() {
@@ -17,13 +18,23 @@ func main() {
 	fmt.Println("Digite o numero de processos (1 - 50): ")
 	fmt.Scanf("%d", &qtdTask)
 
+	testType := 0
+	fmt.Println("")
+	fmt.Println("Digite o tipo de teste: ")
+	fmt.Println("1 -> Tasks curtas")
+	fmt.Println("2 -> Tasks longas")
+	fmt.Println("3 -> Tasks variadas")
+	fmt.Println("4 -> Tasks aleatorias (Default)")
+	fmt.Println("")
+	fmt.Scanf("%d", &testType)
+
 	var tasks []taskcreate.TaskStruct
 
 	if qtdTask < 1 || qtdTask > 50 {
 		fmt.Println("Numero invalido!")
 		return
 	} else {
-		tasks = taskcreate.TaskVetorCreator(qtdTask)
+		tasks = taskcreate.TaskVetorCreator(qtdTask, testType)
 	}
 
 	fmt.Println()
@@ -33,14 +44,16 @@ func main() {
 	fmt.Println("Digite o numero do algoritimo de teste: ")
 	fmt.Println("1 -> Round Robin")
 	fmt.Println("2 -> Round Robin - Priority")
-	fmt.Println("3 -> Shortest First")
-	fmt.Println("4 -> Priority First")
-	fmt.Println("5 -> First In First Out")
-	fmt.Println("5 -> Priority List")
+	fmt.Println("3 -> Round Robin - Dynamic")
+	fmt.Println("4 -> Shortest First")
+	fmt.Println("5 -> Priority First")
+	fmt.Println("6 -> First In First Out")
 	fmt.Println("")
 	fmt.Scanf("%d", &managerOption)
 
 	fmt.Print("\033[H\033[2J")
+
+	start := time.Now()
 
 	switch managerOption {
 	case 1:
@@ -53,19 +66,23 @@ func main() {
 		}
 	case 3:
 		{
-			shortestFirst.ShortestFirst(tasks)
+			priorityList.Prioritylist(tasks)
+
 		}
 	case 4:
 		{
-			priorityFirst.PriorityFirst(tasks)
+			shortestFirst.ShortestFirst(tasks)
+
 		}
 	case 5:
 		{
-			firstInfirstOut.FirstInfirstOut(tasks)
+			priorityFirst.PriorityFirst(tasks)
+
 		}
 	case 6:
 		{
-			priorityList.Prioritylist(tasks)
+			firstInfirstOut.FirstInfirstOut(tasks)
+
 		}
 	default:
 		{
@@ -73,4 +90,10 @@ func main() {
 			return
 		}
 	}
+
+	end := time.Now()
+	duration := end.Sub(start)
+	durationInSeconds := duration.Seconds()
+
+	fmt.Printf("\nTempo de execucao: %.2f segundos\nQuantidade de processos: %d\nProcessos concluidos por segundo: %.2f\n\n", durationInSeconds, qtdTask, float64(qtdTask)/durationInSeconds)
 }
