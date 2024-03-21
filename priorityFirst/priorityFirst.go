@@ -1,7 +1,9 @@
-package roundrobin
+package priorityFirst
 
 import (
 	"fmt"
+	"sort"
+
 	"sync"
 	"time"
 
@@ -11,19 +13,20 @@ import (
 	taskcreate "module/taskCreate"
 )
 
-func RoundRobin(tasks []taskcreate.TaskStruct) {
+func PriorityFirst(tasks []taskcreate.TaskStruct) {
 	const (
 		Reset = "\033[0m"
 		Red   = "\033[31m"
-		/* 		Green   = "\033[32m"
-		   		Yellow  = "\033[33m"
-		   		Blue    = "\033[34m"
-		   		Magenta = "\033[35m"
-		   		Cyan    = "\033[36m"
-		   		White   = "\033[37m" */
 	)
 
-	//tasks := taskcreate.TaskVetorCreator(qtdTask)
+	priorityTaskIdx := make([]int, len(tasks))
+	for i := range priorityTaskIdx {
+		priorityTaskIdx[i] = i
+	}
+
+	sort.SliceStable(priorityTaskIdx, func(i, j int) bool {
+		return tasks[priorityTaskIdx[i]].Priority < tasks[priorityTaskIdx[j]].Priority
+	})
 
 	fmt.Println(Red + "    ID   " + Reset + "|" + Red + "   PRIORITY   " + Reset + "|" + Red + "       QUANTUM       " + Reset + "|" + Red + "                                               PROGRESS                                         " + Reset)
 
@@ -45,32 +48,15 @@ func RoundRobin(tasks []taskcreate.TaskStruct) {
 	}
 
 	// Atualiza as barras de progresso dinamicamente
-	// Continua até que todas as barras de progresso estejam concluídas.
-	for {
-		allCompleted := true
-		// Itera sobre cada barra de progresso no slice 'bars'.
-		for _, bar := range bars {
-			// Verifica se a barra de progresso atual não está concluída.
-			if !bar.Completed() {
-				// Se a barra de progresso não estiver concluída, define 'allCompleted' como false.
-				allCompleted = false
-				for quantum := 0; quantum < 10; quantum++ {
-					bar.IncrBy(1)
-					time.Sleep(time.Millisecond * 10)
-					if bar.Completed() {
-						break
-					}
-				}
-				// Após incrementar a barra de progresso 10 vezes, aguarda 100 milissegundos.
-				time.Sleep(time.Millisecond * 100)
-			}
+	for _, index := range priorityTaskIdx {
+		for !bars[index].Completed() {
+			bars[index].IncrBy(1)
+			time.Sleep(time.Millisecond * 10)
 		}
-		// Se todas as barras de progresso estiverem concluídas sai do loop infinito.
-		if allCompleted {
-			break
-		}
+		time.Sleep(time.Millisecond * 100)
 	}
 
 	// Finaliza o progresso principal
 	p.Wait()
+
 }

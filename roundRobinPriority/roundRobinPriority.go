@@ -1,4 +1,4 @@
-package roundrobin
+package roundRobinPriority
 
 import (
 	"fmt"
@@ -11,19 +11,11 @@ import (
 	taskcreate "module/taskCreate"
 )
 
-func RoundRobin(tasks []taskcreate.TaskStruct) {
+func RoundRobinPriority(tasks []taskcreate.TaskStruct) {
 	const (
 		Reset = "\033[0m"
 		Red   = "\033[31m"
-		/* 		Green   = "\033[32m"
-		   		Yellow  = "\033[33m"
-		   		Blue    = "\033[34m"
-		   		Magenta = "\033[35m"
-		   		Cyan    = "\033[36m"
-		   		White   = "\033[37m" */
 	)
-
-	//tasks := taskcreate.TaskVetorCreator(qtdTask)
 
 	fmt.Println(Red + "    ID   " + Reset + "|" + Red + "   PRIORITY   " + Reset + "|" + Red + "       QUANTUM       " + Reset + "|" + Red + "                                               PROGRESS                                         " + Reset)
 
@@ -49,12 +41,12 @@ func RoundRobin(tasks []taskcreate.TaskStruct) {
 	for {
 		allCompleted := true
 		// Itera sobre cada barra de progresso no slice 'bars'.
-		for _, bar := range bars {
+		for i, bar := range bars {
 			// Verifica se a barra de progresso atual não está concluída.
 			if !bar.Completed() {
 				// Se a barra de progresso não estiver concluída, define 'allCompleted' como false.
 				allCompleted = false
-				for quantum := 0; quantum < 10; quantum++ {
+				for quantum := 0; quantum < 10+(10/tasks[i].Priority); quantum++ {
 					bar.IncrBy(1)
 					time.Sleep(time.Millisecond * 10)
 					if bar.Completed() {

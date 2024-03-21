@@ -2,9 +2,13 @@ package main
 
 import (
 	"fmt"
-	roundrobin "module/roundRobin"
-	taskcreate "module/taskCreate"
+	firstInfirstOut "module/firstInFirstOut"
+	"module/priorityFirst"
 	priorityList "module/priorityList"
+	roundrobin "module/roundRobin"
+	"module/roundRobinPriority"
+	"module/shortestFirst"
+	taskcreate "module/taskCreate"
 )
 
 func main() {
@@ -28,6 +32,11 @@ func main() {
 
 	fmt.Println("Digite o numero do algoritimo de teste: ")
 	fmt.Println("1 -> Round Robin")
+	fmt.Println("2 -> Round Robin - Priority")
+	fmt.Println("3 -> Shortest First")
+	fmt.Println("4 -> Priority First")
+	fmt.Println("5 -> First In First Out")
+	fmt.Println("")
 	fmt.Scanf("%d", &managerOption)
 
 	fmt.Print("\033[H\033[2J")
@@ -39,11 +48,28 @@ func main() {
 		}
 	case 2:
 		{
+			roundRobinPriority.RoundRobinPriority(tasks)
+		}
+	case 3:
+		{
+			shortestFirst.ShortestFirst(tasks)
+		}
+	case 4:
+		{
+			priorityFirst.PriorityFirst(tasks)
+		}
+	case 5:
+		{
+			firstInfirstOut.FirstInfirstOut(tasks)
+		}
+	case 6:
+		{
 			priorityList.Prioritylist(tasks)
 		}
 	default:
 		{
-			roundrobin.RoundRobin(tasks)
+			fmt.Println("Nenhum selecionado!")
+			return
 		}
 	}
 }
