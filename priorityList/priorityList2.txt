@@ -1,0 +1,93 @@
+package prioritylist
+
+import (
+	"fmt"
+	taskcreate "module/taskCreate"
+	"sort"
+
+	//"runtime/trace"
+	"time"
+)
+
+type taskAux struct {
+	task  taskcreate.TaskStruct
+	index int
+}
+
+//var taskChanel = make(chan []taskAux)
+
+func Prioritylist(tasks []taskcreate.TaskStruct) {
+
+	TasksComplete := make([]taskAux, len(tasks))
+
+	for i, t := range tasks {
+		TasksComplete[i].task = t
+		TasksComplete[i].index = i
+	}
+
+	count := 0
+	tempo := 0
+
+	for {
+
+		for _, t := range TasksComplete {
+			if t.task.Quantum == 0 {
+				continue
+			}
+
+			for quantuns := 0; quantuns < 10+int((10/t.task.Priority)); quantuns++ {
+				t.task.QuantumI = t.task.QuantumI - 1
+				fmt.Println(t.task.QuantumI)
+				tempo++
+				time.Sleep(time.Millisecond * 10)
+			}
+			time.Sleep(time.Millisecond * 100)
+
+		}
+
+		count++
+
+		if count == 3 {
+			count = 1
+			TasksComplete = RoutineProcessVector(TasksComplete)
+		}
+
+		allCompleted := 0
+
+		for _, v := range TasksComplete {
+			if v.task.QuantumI != 0 {
+				allCompleted = 1
+			}
+		}
+
+		if allCompleted == 0 {
+			break
+		}
+
+	}
+}
+
+func RoutineProcessVector(TaskI []taskAux) []taskAux {
+
+	for _, t := range TaskI {
+		conta := float64(t.task.QuantumI) / float64(t.task.Quantum)
+		if conta >= 0.95 {
+			t.task.Priority = t.task.Priority * 8
+		} else if conta < 0.95 && conta >= 0.80 {
+			t.task.Priority = t.task.Priority * 6
+		} else if conta < 0.80 && conta >= 0.50 {
+			t.task.Priority = t.task.Priority * 4
+		}
+
+	}
+
+	time.Sleep(time.Millisecond * 100)
+
+	sort.Slice(TaskI, func(i, j int) bool {
+		return TaskI[i].task.Priority > TaskI[j].task.Priority
+	})
+
+	time.Sleep(time.Millisecond * 100)
+
+	return TaskI
+}

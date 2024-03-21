@@ -4,6 +4,7 @@ import (
 	"fmt"
 	roundrobin "module/roundRobin"
 	taskcreate "module/taskCreate"
+	priorityList "module/priorityList"
 )
 
 func main() {
@@ -35,6 +36,10 @@ func main() {
 	case 1:
 		{
 			roundrobin.RoundRobin(tasks)
+		}
+	case 2:
+		{
+			priorityList.Prioritylist(tasks)
 		}
 	default:
 		{
